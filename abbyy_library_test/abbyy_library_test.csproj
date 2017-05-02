@@ -55,9 +55,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\abbyy_logic_library\abbyy_logic_library.csproj">
+    <ProjectReference Include="..\abbyy_logic_library\WKFCBusinessRules.csproj">
       <Project>{a7d61863-05c4-48b6-a600-b995bca425eb}</Project>
-      <Name>abbyy_logic_library</Name>
+      <Name>WKFCBusinessRules</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />

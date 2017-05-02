@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26228.4
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "abbyy_logic_library", "abbyy_logic_library\abbyy_logic_library.csproj", "{A7D61863-05C4-48B6-A600-B995BCA425EB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WKFCBusinessRules", "abbyy_logic_library\WKFCBusinessRules.csproj", "{A7D61863-05C4-48B6-A600-B995BCA425EB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "abbyy_library_test", "abbyy_library_test\abbyy_library_test.csproj", "{8C4B9E14-84EF-4860-BC23-DDF4B7C20651}"
 EndProject

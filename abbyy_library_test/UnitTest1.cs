@@ -1,5 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using abbyy_logic_library;
+using WKFCBusinessRules;
 using System.Collections.Generic;
 
 namespace abbyy_library_test
@@ -81,6 +81,66 @@ namespace abbyy_library_test
             Assert.AreNotEqual("123456", result1);
         }
 
+        [TestMethod]
+        public void DoesConstructionTypeConversionWork()
+        {
+            string testConstType1 = "joist mason";
+            string testConstType2 = "sheet metal";
+            string testConstType3 = "mnc";
 
+            string result1 = WKFCLogic.ConvertConstrTypeToInteger(testConstType1);
+            string result2 = WKFCLogic.ConvertConstrTypeToInteger(testConstType2);
+            string result3 = WKFCLogic.ConvertConstrTypeToInteger(testConstType3);
+
+            Assert.AreEqual("4", result1);
+            Assert.AreEqual("5", result2);
+            Assert.AreEqual("2", result3);
+        }
+
+        [TestMethod]
+        public void DoesBuildingNumberExtractionWork()
+        {
+            string bldgStreet1 = "137-141-143  ST JAMES ST";
+            string bldgStreet2 = "27 WATERFORD POINTE CIR,";
+            string bldgStreet3 = "7419-7461 W. Colonial Drive";
+
+            string result1 = WKFCLogic.GetFirstBuildingNumber(bldgStreet1);
+            string result2 = WKFCLogic.GetFirstBuildingNumber(bldgStreet2);
+            string result3 = WKFCLogic.GetFirstBuildingNumber(bldgStreet3);
+
+            Assert.AreEqual("137", result1);
+            Assert.AreEqual("27", result2);
+            Assert.AreEqual("7419", result3);
+        }
+
+        [TestMethod]
+        public void DoesGeocodingReturnProperResults()
+        {
+            string addressInput = "203 S St Marys Ste 170 San Antonio TX 78205";
+
+            var results = WKFCLogic.ParseAddress(addressInput);
+            
+            Assert.IsInstanceOfType(results, typeof(ABBYYLocation));
+            Assert.AreEqual("203", results.singleBldg);
+            Assert.AreEqual("South Saint Mary's Street", results.st1);
+            Assert.AreEqual("170", results.st2);
+            Assert.AreEqual("San Antonio", results.city);
+            Assert.AreEqual("Bexar County", results.county);
+            Assert.AreEqual("Texas", results.state);
+            Assert.AreEqual("78205", results.zip);
+
+        }
+
+        [TestMethod]
+        public void CanWePerformBasicAddition()
+        {
+            string bv = "1,123,555";
+            string bpp = "23465";
+            string bi = "33,334";
+
+            var results = WKFCLogic.sumTIV(bv, bpp, bi);
+
+            Assert.AreEqual("1180354", results);
+        }
     }
 }
