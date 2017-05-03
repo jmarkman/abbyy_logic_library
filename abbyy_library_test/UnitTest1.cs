@@ -1,6 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WKFCBusinessRules;
-using System.Collections.Generic;
 
 namespace abbyy_library_test
 {
@@ -141,6 +140,22 @@ namespace abbyy_library_test
             var results = WKFCLogic.sumTIV(bv, bpp, bi);
 
             Assert.AreEqual("1180354", results);
+        }
+
+        [TestMethod]
+        public void DoesBldgNumRangeExtractionWorkAsIntended()
+        {
+            string addr1 = "137-141-143  ST JAMES ST";
+            string addr2 = "27 WATERFORD POINTE CIR,";
+            string addr3 = "7419-7461 W. Colonial Drive";
+
+            string result1 = WKFCLogic.GetEntireBuildingNumber(addr1);
+            string result2 = WKFCLogic.GetEntireBuildingNumber(addr2);
+            string result3 = WKFCLogic.GetEntireBuildingNumber(addr3);
+
+            Assert.AreEqual("137-141-143", result1);
+            Assert.AreEqual("27", result2);
+            Assert.AreEqual("7419-7461", result3);
         }
     }
 }

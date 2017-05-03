@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
-using System.Xml;
-using System.IO;
 using Newtonsoft.Json;
 
 namespace WKFCBusinessRules
@@ -128,17 +126,44 @@ namespace WKFCBusinessRules
                 isNumber = Int32.TryParse(bldgNums, out number);
 
                 if (isNumber)
-                {
                     return bldgNums;
-                }
                 else if (dash > 0)
-                {
                     return bldgNums.Substring(0, dash);
-                }
             }
             catch (ArgumentOutOfRangeException rangeExc)
             {
                 return "";
+            }
+            return null;
+        }
+
+        public static string GetEntireBuildingNumber(string userInputStreet)
+        {
+            int space = userInputStreet.IndexOf(" ");
+            int dash = userInputStreet.IndexOf('-');
+            bool isNumber;
+            string bldgNums, testCase, extractedBldgNum;
+
+            bldgNums = userInputStreet.Substring(0, space);
+
+            try
+            {
+                int number;
+                testCase = bldgNums.Substring(0, dash);
+                isNumber = Int32.TryParse(testCase, out number);
+
+                if (isNumber)
+                    return bldgNums;
+                else if (dash > 0)
+                    return "";
+
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                if (dash == -1)
+                    return bldgNums;
+                else
+                    return "";
             }
             return null;
         }
@@ -166,14 +191,21 @@ namespace WKFCBusinessRules
                     }
                 }
             }
-
-            location.singleBldg = addressParts["street_number"];
-            location.st1 = addressParts["route"];
-            location.st2 = addressParts["subpremise"];
-            location.city = addressParts["locality"];
-            location.county = addressParts["administrative_area_level_2"];
-            location.state = addressParts["administrative_area_level_1"];
-            location.zip = addressParts["postal_code"];
+            // forgive me padre for i have sinned
+            location.singleBldg = 
+                (addressParts.ContainsKey("street_number") ? addressParts["street_number"] : "");
+            location.st1 = 
+                (addressParts.ContainsKey("route") ? addressParts["route"] : "");
+            location.st2 = 
+                (addressParts.ContainsKey("subpremise") ? addressParts["subpremise"] : "");
+            location.city = 
+                (addressParts.ContainsKey("locality") ? addressParts["locality"] : "");
+            location.county = 
+                (addressParts.ContainsKey("administrative_area_level_2") ? addressParts["administrative_area_level_2"] : "");
+            location.state = 
+                (addressParts.ContainsKey("administrative_area_level_1") ? addressParts["administrative_area_level_1"] : "");
+            location.zip = 
+                (addressParts.ContainsKey("postal_code") ? addressParts["postal_code"] : "");
 
             return location;
         }
