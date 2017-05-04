@@ -87,13 +87,21 @@ namespace abbyy_library_test
             string testConstType2 = "sheet metal";
             string testConstType3 = "mnc";
 
-            string result1 = WKFCLogic.ConvertConstrTypeToInteger(testConstType1);
-            string result2 = WKFCLogic.ConvertConstrTypeToInteger(testConstType2);
-            string result3 = WKFCLogic.ConvertConstrTypeToInteger(testConstType3);
+            string result1 = WKFCLogic.ConvertConstrTypeToInteger(testConstType1, true);
+            string result2 = WKFCLogic.ConvertConstrTypeToInteger(testConstType2, true);
+            string result3 = WKFCLogic.ConvertConstrTypeToInteger(testConstType3, true);
+
+            string result4 = WKFCLogic.ConvertConstrTypeToInteger(testConstType1, false);
+            string result5 = WKFCLogic.ConvertConstrTypeToInteger(testConstType2, false);
+            string result6 = WKFCLogic.ConvertConstrTypeToInteger(testConstType3, false);
 
             Assert.AreEqual("4", result1);
             Assert.AreEqual("5", result2);
             Assert.AreEqual("2", result3);
+
+            Assert.AreEqual("2", result4);
+            Assert.AreEqual("1", result5);
+            Assert.AreEqual("4", result6);
         }
 
         [TestMethod]
@@ -136,8 +144,9 @@ namespace abbyy_library_test
             string bv = "1,123,555";
             string bpp = "23465";
             string bi = "33,334";
+            string mp = "0";
 
-            var results = WKFCLogic.sumTIV(bv, bpp, bi);
+            var results = WKFCLogic.sumTIV(bv, bpp, bi, mp);
 
             Assert.AreEqual("1180354", results);
         }
