@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
 using Newtonsoft.Json;
+using System.Text.RegularExpressions;
 
 namespace WKFCBusinessRules
 {
@@ -12,9 +13,16 @@ namespace WKFCBusinessRules
         {
             try
             {
-                int fullYear = CultureInfo.CurrentCulture.Calendar.ToFourDigitYear(Int32.Parse(userInputYear));
+                if (userInputYear.Length > 1)
+                {
+                    int fullYear = CultureInfo.CurrentCulture.Calendar.ToFourDigitYear(Int32.Parse(userInputYear));
 
-                return fullYear.ToString();
+                    return fullYear.ToString();
+                }
+                else
+                {
+                    return "";
+                }
             }
             catch (ArgumentOutOfRangeException arnge)
             {
@@ -28,8 +36,10 @@ namespace WKFCBusinessRules
             if (userInputCounty.ToLower().Contains("county"))
             {
                 int space = userInputCounty.IndexOf(' ');
-                if (space != -1)
+                if (space != -1 && userInputCounty.LastIndexOf(' ') == space)
                     return userInputCounty.Substring(0, space);
+                else
+                    return userInputCounty.Substring(0, userInputCounty.LastIndexOf(' '));
             }
             return null;
         }
@@ -242,13 +252,11 @@ namespace WKFCBusinessRules
 
         public static string sumTIV(string buildingValue, string personalProperty, string businessIncome, string miscRealProperty)
         {
-            if (buildingValue.Contains(",") || personalProperty.Contains(",") || businessIncome.Contains(",") || miscRealProperty.Contains(","))
-            {
-                buildingValue.Replace(",", "");
-                personalProperty.Replace(",", "");
-                businessIncome.Replace(",", "");
-                miscRealProperty.Replace(",", "");
-            }
+            // cool but gross
+            buildingValue = buildingValue.Replace("$", "").Replace(",", "").Replace(" ", "");
+            personalProperty = personalProperty.Replace("$", "").Replace(",", "").Replace(" ", "");
+            businessIncome = businessIncome.Replace("$", "").Replace(",", "").Replace(" ", "");
+            miscRealProperty = miscRealProperty.Replace("$", "").Replace(",", "").Replace(" ", "");
 
             double bldgValueNumeric, businessPersPropNumeric, businessIncomeNumeric, miscPropNumeric;
 
@@ -263,7 +271,7 @@ namespace WKFCBusinessRules
                 return tivNumeric.ToString();
             }
             else
-                return null;
+                return "";
         }
     }
 }

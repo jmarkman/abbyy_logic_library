@@ -37,14 +37,17 @@ namespace abbyy_library_test
             string queens = "Queens County";
             string bronx = "Bronx County";
             string brooklyn = "Kings County";
+            string newYork = "New York County";
 
             string result1 = WKFCLogic.RemoveCountySuffix(queens);
             string result2 = WKFCLogic.RemoveCountySuffix(bronx);
             string result3 = WKFCLogic.RemoveCountySuffix(brooklyn);
+            string result4 = WKFCLogic.RemoveCountySuffix(newYork);
 
             Assert.AreEqual("Queens", result1);
             Assert.AreEqual("Bronx", result2);
             Assert.AreEqual("Kings", result3);
+            Assert.AreEqual("New York", result4);
         }
 
         [TestMethod]
@@ -141,8 +144,8 @@ namespace abbyy_library_test
         [TestMethod]
         public void CanWePerformBasicAddition()
         {
-            string bv = "1,123,555";
-            string bpp = "23465";
+            string bv = "$112,3555";
+            string bpp = "$234 65";
             string bi = "33,334";
             string mp = "0";
 
