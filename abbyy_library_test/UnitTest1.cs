@@ -114,9 +114,9 @@ namespace abbyy_library_test
             string bldgStreet2 = "27 WATERFORD POINTE CIR,";
             string bldgStreet3 = "7419-7461 W. Colonial Drive";
 
-            string result1 = WKFCLogic.GetFirstBuildingNumber(bldgStreet1);
-            string result2 = WKFCLogic.GetFirstBuildingNumber(bldgStreet2);
-            string result3 = WKFCLogic.GetFirstBuildingNumber(bldgStreet3);
+            string result1 = WKFCLogic.GetBuildingNumber(bldgStreet1, true);
+            string result2 = WKFCLogic.GetBuildingNumber(bldgStreet2, true);
+            string result3 = WKFCLogic.GetBuildingNumber(bldgStreet3, true);
 
             Assert.AreEqual("137", result1);
             Assert.AreEqual("27", result2);
@@ -161,9 +161,9 @@ namespace abbyy_library_test
             string addr2 = "27 WATERFORD POINTE CIR,";
             string addr3 = "7419-7461 W. Colonial Drive";
 
-            string result1 = WKFCLogic.GetEntireBuildingNumber(addr1);
-            string result2 = WKFCLogic.GetEntireBuildingNumber(addr2);
-            string result3 = WKFCLogic.GetEntireBuildingNumber(addr3);
+            string result1 = WKFCLogic.GetBuildingNumber(addr1, false);
+            string result2 = WKFCLogic.GetBuildingNumber(addr2, false);
+            string result3 = WKFCLogic.GetBuildingNumber(addr3, false);
 
             Assert.AreEqual("137-141-143", result1);
             Assert.AreEqual("27", result2);
