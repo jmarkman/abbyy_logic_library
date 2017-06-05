@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
@@ -82,24 +83,16 @@ namespace WKFCBusinessRules
         /// <returns>The ID number as a string</returns>
         public static string GetControlNumber(string subjectLine)
         {
-            // We told the office to only use square brackets but that's got a snowball's chance in hell of happening
-            char[] leftEnclosures = { '(', '{', '[' };
-            char[] rightEnclosures = { ')', '}', ']' };
-            string controlNumber = "";
-
-            int openEnclosure = subjectLine.IndexOfAny(leftEnclosures);
-            int closeEnclosure = subjectLine.IndexOfAny(rightEnclosures);
-
-            try
+            if (subjectLine.Length == 0)
+                return "";
+            else
             {
-                controlNumber = subjectLine.Substring(openEnclosure + 1, (closeEnclosure - openEnclosure) - 1);
-                return controlNumber;
+                Match match = Regex.Match(subjectLine, @"(?<=\[|\(|\{)[0-9]+(?=\]|\}|\))");
+                if (match.Success)
+                    return match.Value;
+                else
+                    return "";
             }
-            catch (ArgumentOutOfRangeException rangeExc)
-            {
-                rangeExc.ToString();
-            }
-            return null;
         }
 
         /// <summary>

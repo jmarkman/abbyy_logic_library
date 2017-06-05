@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WKFCBusinessRules;
+using static WKFCBusinessRules.WKFCLogic;
 
 namespace abbyy_library_test
 {
@@ -72,14 +73,29 @@ namespace abbyy_library_test
             string testSubject1 = "FW: [111234] Some Homeowners Association";
             string testSubject2 = "{1231246} A Condominium Somewhere";
             string testSubject3 = "(2436531) The Bodega where Omar Little from The Wire Got Shot";
+            string testSubject4 = "submission 1: {2341234} laguna 140";
+            string testSubject5 = "11541423 An Apartment Complex";
+            string testSubject6 = "";
+            string testSubject7 = "(1234678) Edward L Donaldson DDS";
+            string testSubject8 = "(2345678) Graham Village Apartments, LTD";
 
-            string result1 = WKFCLogic.GetControlNumber(testSubject1);
-            string result2 = WKFCLogic.GetControlNumber(testSubject2);
-            string result3 = WKFCLogic.GetControlNumber(testSubject3);
+            string result1 = GetControlNumber(testSubject1);
+            string result2 = GetControlNumber(testSubject2);
+            string result3 = GetControlNumber(testSubject3);
+            string result4 = GetControlNumber(testSubject4);
+            string result5 = GetControlNumber(testSubject5);
+            string result6 = GetControlNumber(testSubject6);
+            string result7 = GetControlNumber(testSubject7);
+            string result8 = GetControlNumber(testSubject8);
 
             Assert.AreEqual("111234", result1);
             Assert.AreEqual("1231246", result2);
             Assert.AreEqual("2436531", result3);
+            Assert.AreEqual("2341234", result4);
+            Assert.AreEqual("", result5);
+            Assert.AreEqual("", result6);
+            Assert.AreEqual("1234678", result7);
+            Assert.AreEqual("2345678", result8);
             Assert.AreNotEqual("123456", result1);
         }
 
