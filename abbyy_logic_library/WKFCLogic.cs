@@ -10,7 +10,7 @@ namespace WKFCBusinessRules
     public class WKFCLogic
     {
         /// <summary>
-        /// Converts a two-digit year to a 4-digit year utilizing CultureInfo.Calendar's ToFourDigitYear() method
+        /// Converts a two-digit year to a 4-digit year utilizing CultureInfo.Calendar
         /// </summary>
         /// <param name="userInputYear">The year provided via ABBYY as a string</param>
         /// <returns>The year in four digits as a string</returns>
@@ -37,7 +37,7 @@ namespace WKFCBusinessRules
         }
 
         /// <summary>
-        /// Removes the "county" suffix from a given county according to how the WKFC data entry rules work. 
+        /// Removes the "county" suffix from a given county for database reasons. 
         /// </summary>
         /// <param name="userInputCounty">The county provided via ABBYY as a string</param>
         /// <returns>The county minus its suffix as a string</returns>
@@ -96,10 +96,11 @@ namespace WKFCBusinessRules
         }
 
         /// <summary>
-        /// This method will convert the construction type provided to a number based on a supporting boolean value.
+        /// This method will convert the construction type to a number based 
+        /// on a boolean value
         /// </summary>
         /// <param name="userInputConstrType">The construction type as a string</param>
-        /// <param name="isUsingIMS">Boolean value: passing true uses the company internal format</param>
+        /// <param name="isUsingIMS">Boolean value: true uses the company internal format</param>
         /// <returns>The numeric representation of the construction type as a string</returns>
         public static string ConvertConstrTypeToInteger(string userInputConstrType, bool isUsingIMS)
         {
@@ -130,7 +131,7 @@ namespace WKFCBusinessRules
 
                 // Fire Resistive, ISO Number: 6, IMS ID: 1
                 {"aaa", 1}, {"fire resistive", 1}, {"cinder block", 1}, {"steel", 1}, {"steel frame", 1},
-                {"superior", 1}, {"w/r", 1}, {"fire resist", 1}, {"fire resistiv", 1}, {"fr", 1}
+                {"superior", 1}, {"w/r", 1}, {"fire resist", 1}, {"fire resistiv", 1}, {"fr", 1}, {"fire resitive", 1}
             };
 
             // This is how the international standard does it
@@ -160,7 +161,7 @@ namespace WKFCBusinessRules
 
                 // Fire Resistive, ISO Number: 6, IMS ID: 1
                 {"aaa", 6}, {"fire resistive", 6}, {"cinder block", 6}, {"steel", 6}, {"steel frame", 6},
-                {"superior", 6}, {"w/r", 6}, {"fire resist", 6}, {"fire resistiv", 6}, {"fr", 6}
+                {"superior", 6}, {"w/r", 6}, {"fire resist", 6}, {"fire resistiv", 6}, {"fr", 6}, {"fire resitive", 6}
             };
 
             if (isUsingIMS)
@@ -211,7 +212,7 @@ namespace WKFCBusinessRules
                     else if (dash > 0)
                         return bldgNums.Substring(0, dash);
                 }
-                catch (ArgumentOutOfRangeException rangeExc)
+                catch (ArgumentOutOfRangeException)
                 {
                     return "";
                 }
@@ -268,26 +269,24 @@ namespace WKFCBusinessRules
             }
             // Fill the object with the value contents of the dictionary
             // forgive me padre for i have sinned
-            location.singleBldg = 
-                (addressParts.ContainsKey("street_number") ? addressParts["street_number"] : "");
-            location.st1 = 
-                (addressParts.ContainsKey("route") ? addressParts["route"] : "");
-            location.st2 = 
-                (addressParts.ContainsKey("subpremise") ? addressParts["subpremise"] : "");
-            location.city = 
-                (addressParts.ContainsKey("locality") ? addressParts["locality"] : "");
-            location.county = 
-                (addressParts.ContainsKey("administrative_area_level_2") ? addressParts["administrative_area_level_2"] : "");
-            location.state = 
-                (addressParts.ContainsKey("administrative_area_level_1") ? addressParts["administrative_area_level_1"] : "");
-            location.zip = 
-                (addressParts.ContainsKey("postal_code") ? addressParts["postal_code"] : "");
+            location.singleBldg = (addressParts.ContainsKey("street_number") ? addressParts["street_number"] : "");
+            location.st1 = (addressParts.ContainsKey("route") ? addressParts["route"] : "");
+            location.st2 = (addressParts.ContainsKey("subpremise") ? addressParts["subpremise"] : "");
+
+            if (!addressParts.ContainsKey("locality"))
+                location.city = (addressParts.ContainsKey("political") ? addressParts["political"] : "");
+            else if (addressParts.ContainsKey("locality"))
+                location.city = addressParts["locality"];
+
+            location.county = (addressParts.ContainsKey("administrative_area_level_2") ? addressParts["administrative_area_level_2"] : "");
+            location.state = (addressParts.ContainsKey("administrative_area_level_1") ? addressParts["administrative_area_level_1"] : "");
+            location.zip = (addressParts.ContainsKey("postal_code") ? addressParts["postal_code"] : "");
 
             return location;
         }
 
         /// <summary>
-        /// Takes the numerical values that make up the Total Insured Value as strings and sums them together
+        /// Takes the numerical values that make up the Total Insured Value and sums them together
         /// </summary>
         /// <param name="buildingValue">Building Value as a string</param>
         /// <param name="personalProperty">Business Personal Property as a string</param>
@@ -318,6 +317,24 @@ namespace WKFCBusinessRules
             }
             else
                 return "";
+        }
+
+        /// <summary>
+        /// If "3A" was input as a building number, it caused database input exceptions.
+        /// </summary>
+        /// <param name="userInputNumber">The result from OCR as a string</param>
+        /// <returns>Null if not valid, a string if valid</returns>
+        public static string CheckIfNumeric(string userInputNumber)
+        {
+            bool isNumber;
+            int number;
+
+            isNumber = Int32.TryParse(userInputNumber, out number);
+
+            if (isNumber)
+                return number.ToString();
+            else
+                return null;
         }
     }
 }
