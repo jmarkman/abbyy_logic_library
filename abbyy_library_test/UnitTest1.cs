@@ -185,5 +185,19 @@ namespace abbyy_library_test
             Assert.AreEqual("27", result2);
             Assert.AreEqual("7419-7461", result3);
         }
+
+        [TestMethod]
+        public void CheckIfMethodReturnsNull()
+        {
+            string testinput1 = "3A";
+            string testinput2 = "21";
+
+            string output1 = CheckIfNumeric(testinput1);
+            string output2 = CheckIfNumeric(testinput2);
+
+            Assert.IsNull(output1);
+            Assert.IsNotNull(output2);
+            Assert.AreEqual("21", testinput2);
+        }
     }
 }
