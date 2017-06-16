@@ -144,7 +144,7 @@ namespace abbyy_library_test
         {
             string addressInput = "203 S St Marys Ste 170 San Antonio TX 78205";
 
-            var results = WKFCLogic.ParseAddress(addressInput);
+            var results = ParseAddress(addressInput);
             
             Assert.IsInstanceOfType(results, typeof(ABBYYLocation));
             Assert.AreEqual("203", results.singleBldg);
@@ -154,7 +154,6 @@ namespace abbyy_library_test
             Assert.AreEqual("Bexar County", results.county);
             Assert.AreEqual("Texas", results.state);
             Assert.AreEqual("78205", results.zip);
-
         }
 
         [TestMethod]
@@ -198,6 +197,23 @@ namespace abbyy_library_test
             Assert.IsNull(output1);
             Assert.IsNotNull(output2);
             Assert.AreEqual("21", testinput2);
+        }
+
+        [TestMethod]
+        public void DoesGeocodeReturnNullIfStatusIsNotOK()
+        {
+            string addressInput = "ahgggggggggggggggg";
+
+            var results = ParseAddress(addressInput);
+
+            Assert.IsInstanceOfType(results, typeof(ABBYYLocation));
+            Assert.IsNull(results.singleBldg);
+            Assert.IsNull(results.st1);
+            Assert.IsNull(results.st2);
+            Assert.IsNull(results.city);
+            Assert.IsNull(results.county);
+            Assert.IsNull(results.state);
+            Assert.IsNull(results.zip);
         }
     }
 }

@@ -261,12 +261,16 @@ namespace WKFCBusinessRules
                 var json = webc.DownloadString(requestUri);
                 var locationinfo = JsonConvert.DeserializeObject<LocationInfo>(json);
 
+                if (locationinfo.status != "OK")
+                    return location;
+
                 // Now store the address component name as the key and the actual address component as the value
                 foreach (var item in locationinfo.results[0].address_components)
                     foreach (var type in item.types)
                         if (!addressParts.ContainsKey(item.types[0]))
                             addressParts.Add(item.types[0].ToString(), item.long_name.ToString());
             }
+
             // Fill the object with the value contents of the dictionary
             // forgive me padre for i have sinned
             location.singleBldg = (addressParts.ContainsKey("street_number") ? addressParts["street_number"] : "");
