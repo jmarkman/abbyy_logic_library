@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
 using Newtonsoft.Json;
+using System.Linq;
 
 namespace WKFCBusinessRules
 {
@@ -87,7 +88,17 @@ namespace WKFCBusinessRules
                 return "";
             else
             {
-                Match match = Regex.Match(subjectLine, @"(?<=\[|\(|\{)[0-9]+(?=\]|\}|\))");
+                /*
+                 * Regex definition:
+                 *     ?<= is a lookbehind, of the parent category of lookarounds http://www.regular-expressions.info/lookaround.html
+                 *     "When matching a group of numbers between 0 and 9, look behind the matching character and make sure it falls within the group"
+                 *     [0-9]{7,} says to match characters that are the digits 0 to 9, but make sure to match at least 7 of those characters"
+                 *     ?= is a lookahead, of the parent category of lookarounds. It repeats the same idea of a lookbehind but in reverse:
+                 *     "When matching a group of numbers, look in front of the matching character and make sure it falls within the group"
+                 * 
+                 * Thus, a control number between brackets, curly braces, or parentheses can be found in a given string
+                 */
+                Match match = Regex.Match(subjectLine, @"(?<=\[|\(|\{)[0-9]{7,}(?=\]|\}|\))");
                 if (match.Success)
                     return match.Value;
                 else
@@ -113,7 +124,7 @@ namespace WKFCBusinessRules
                 // Frame, ISO Number: 1, IMS ID: 5
                 {"brick frame", 5}, {"frame", 5}, {"brick veneer", 5}, {"frame block", 5},
                 {"heavy timber", 5}, {"masonry frame", 5}, {"masonry wood", 5}, {"metal building", 5},
-                {"sheet metal", 5}, {"wood", 5}, {"metal/aluminum", 5},
+                {"sheet metal", 5}, {"wood", 5}, 
 
                 // Joisted Masonry, ISO Number: 2, IMS ID: 4
                 {"brick", 4}, {"brick steel", 4}, {"cd", 4}, {"cement", 4}, {"masonry", 4}, {"masonry timbre", 4},
@@ -123,7 +134,8 @@ namespace WKFCBusinessRules
                 // Non-Combustible, ISO Number: 3, IMS ID: 3
                 {"cb", 3}, {"concrete block", 3}, {"icm", 3}, {"iron clad metal", 3}, {"steel concrete", 3},
                 {"steel cmu", 3}, {"non-comb.", 3}, {"non-comb", 3}, {"pole", 3}, {"non-combustible", 3},
-                {"non-combustib", 3},
+                {"non-combustib", 3}, {"metal/aluminum", 3}, {"metal / aluminum", 3}, {"metal on slab", 3},
+                {"steel & concr", 3},
 
                 // Masonry Non-Combustible, ISO Number: 4, IMS ID: 2
                 {"cement block", 2}, {"cbs", 2}, {"mnc", 2}, {"ctu", 2}, {"concrete tilt-up", 2}, {"pre-cast com", 2},
@@ -153,7 +165,8 @@ namespace WKFCBusinessRules
                 // Non-Combustible, ISO Number: 3, IMS ID: 3
                 {"cb", 3}, {"concrete block", 3}, {"icm", 3}, {"iron clad metal", 3}, {"steel concrete", 3},
                 {"steel cmu", 3}, {"non-comb.", 3}, {"non-comb", 3}, {"pole", 3}, {"non-combustible", 3},
-                {"non-combustib", 3},
+                {"non-combustib", 3}, {"metal/aluminum", 3}, {"metal / aluminum", 3}, {"metal on slab", 3},
+                {"steel & concr", 3},
 
                 // Masonry Non-Combustible, ISO Number: 4, IMS ID: 2
                 {"cement block", 4}, {"cbs", 4}, {"mnc", 4}, {"ctu", 4}, {"concrete tilt-up", 4}, {"pre-cast com", 4},
@@ -194,52 +207,27 @@ namespace WKFCBusinessRules
             // A building range will always be separated from the rest of the street by a space
             int space = userInputStreet.IndexOf(" "); 
             // Find the index of the separating dash
-            int dash = userInputStreet.IndexOf('-');
-            bool isNumber;
-            string bldgNums, testCase;
+            string bldgNums;
 
             bldgNums = userInputStreet.Substring(0, space);
 
             if (getFirst) // Get the first building number
             {
-                try
+                Regex rgx = new Regex(@"^(\w*)|^(\w*\s)");
+                var match = rgx.Match(bldgNums);
+                if (match.Success)
                 {
-                    int number;
-                    isNumber = Int32.TryParse(bldgNums, out number);
-
-                    if (isNumber)
-                        return bldgNums;
-                    else if (dash > 0)
-                        return bldgNums.Substring(0, dash);
+                    return match.Value;
                 }
-                catch (ArgumentOutOfRangeException)
+                else
                 {
                     return "";
                 }
             }
             else // Get the entire building number range
             {
-                try
-                {
-                    int number;
-                    testCase = bldgNums.Substring(0, dash);
-                    isNumber = Int32.TryParse(testCase, out number);
-
-                    if (isNumber)
-                        return bldgNums;
-                    else if (dash > 0)
-                        return "";
-
-                }
-                catch (ArgumentOutOfRangeException)
-                {
-                    if (dash == -1)
-                        return bldgNums;
-                    else
-                        return "";
-                } 
+                return bldgNums;
             }
-            return null;
         }
 
         /// <summary>
@@ -290,41 +278,26 @@ namespace WKFCBusinessRules
         }
 
         /// <summary>
-        /// Takes the numerical values that make up the Total Insured Value and sums them together
+        /// Returns a parsed and stripped numerical value from the "amount" column of the Acord 140 Premises Info table
         /// </summary>
-        /// <param name="buildingValue">Building Value as a string</param>
-        /// <param name="personalProperty">Business Personal Property as a string</param>
-        /// <param name="businessIncome">Business Income as a string</param>
-        /// <param name="miscRealProperty">Misc Real Property as a string</param>
-        /// <returns>The sum (TIV) as a string</returns>
-        public static string sumTIV(string buildingValue, string personalProperty, string businessIncome, string miscRealProperty)
+        /// <param name="colValue">The monetary value as a string</param>
+        /// <returns>The parsed and cleaned amount as a string</returns>
+        public static string GetValueFromAmtCol(string colValue)
         {
-            // Chain Replace() methods to remove dollar signs, commas, and spaces: may have to expand for periods in place of commas
-            // cool but gross
-            buildingValue = buildingValue.Replace("$", "").Replace(",", "").Replace(" ", "");
-            personalProperty = personalProperty.Replace("$", "").Replace(",", "").Replace(" ", "");
-            businessIncome = businessIncome.Replace("$", "").Replace(",", "").Replace(" ", "");
-            miscRealProperty = miscRealProperty.Replace("$", "").Replace(",", "").Replace(" ", "");
+            // TODO: Reimplement method to handle input values like "34M" being 34,000,000 and "10k" being 10,000
+            Regex rgx = new Regex(@"(\$*,*\s*)");
+            string cleanColValue = rgx.Replace(colValue, "");
 
-            double bldgValueNumeric, businessPersPropNumeric, businessIncomeNumeric, miscPropNumeric;
-
-            // TryParse the input values
-            bool bvResult = Double.TryParse(buildingValue, out bldgValueNumeric);
-            bool persPropResult = Double.TryParse(personalProperty, out businessPersPropNumeric);
-            bool biResult = Double.TryParse(businessIncome, out businessIncomeNumeric);
-            bool miscPropResult = Double.TryParse(miscRealProperty, out miscPropNumeric);
-
-            if (bvResult && persPropResult && biResult && miscPropResult)
+            bool isNumber = System.Int32.TryParse(cleanColValue, out int amount);
+            if (!isNumber)
             {
-                double tivNumeric = bldgValueNumeric + businessPersPropNumeric + businessIncomeNumeric + miscPropNumeric; 
-                return tivNumeric.ToString();
+                amount = 0;
             }
-            else
-                return "";
+            return amount.ToString();                
         }
 
-        /// <summary>
-        /// If "3A" was input as a building number, it caused database input exceptions.
+         /// <summary>
+        /// If "3A" was input as a building number, it caused database input exceptions. I want to delete this ASAP.
         /// </summary>
         /// <param name="userInputNumber">The result from OCR as a string</param>
         /// <returns>Null if not valid, a string if valid</returns>
@@ -340,5 +313,6 @@ namespace WKFCBusinessRules
             else
                 return null;
         }
+        
     }
 }
