@@ -220,6 +220,31 @@ namespace abbyy_library_test
         }
 
         [TestMethod]
+        public void TestRoundStories()
+        {
+            /*
+             * For some reason, brokers sometimes send us Acords where they have
+             * the number of stories written as "2.5". I have no idea how you can
+             * have half a story in a building unless it's a FEATURE. Regardless,
+             * our business rules state that when given these scenarios, we round
+             * up to the nearest whole total number of stories no matter what number
+             * the decimal is. If it's 5.2 stories, it rounds up to 6. If it's 3.7,
+             * it rounds up to 4.
+             */ 
+            string testStories1 = "2.6";
+            string testStories2 = "3.5";
+            string testStories3 = "1.2";
+
+            int results1 = RoundStories(testStories1);
+            int results2 = RoundStories(testStories2);
+            int results3 = RoundStories(testStories3);
+
+            Assert.AreEqual(3, results1);
+            Assert.AreEqual(4, results2);
+            Assert.AreEqual(2, results3);
+        }
+
+        [TestMethod]
         public void DoesGeocodeReturnNullIfStatusIsNotOK()
         {
             /*

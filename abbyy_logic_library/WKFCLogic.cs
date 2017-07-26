@@ -273,6 +273,22 @@ namespace WKFCBusinessRules
         }
 
         /// <summary>
+        /// If the broker writes a decimal for the number of stories, round that value up
+        /// </summary>
+        /// <param name="userInputStories">The number of stories as a string</param>
+        /// <returns>The rounded value as an integer</returns>
+        public static int RoundStories(string userInputStories)
+        {
+            bool isNumber = Double.TryParse(userInputStories, out double parsedStories);
+            if (isNumber)
+            {
+                parsedStories = Math.Ceiling(parsedStories);
+                return Convert.ToInt32(parsedStories);               
+            }
+            return 0;
+        }
+
+        /// <summary>
         /// TryParse wrapper
         /// </summary>
         /// <param name="userInputNumber">The result from OCR as a string</param>
