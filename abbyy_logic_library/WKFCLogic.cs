@@ -17,24 +17,30 @@ namespace WKFCBusinessRules
         /// <returns>The year in four digits as a string</returns>
         public static string AdjustYearBuilt(string userInputYear)
         {
-            try
+   
+            int year = CheckIfNumeric(userInputYear); // Check if the incoming data is actually a number
+            if (year >= 0) // Previously had this as > instead of >= which excluded '00 as a year
             {
+                // Sometimes ABBYY will only read one digit from the form, just skip it if this happens
                 if (userInputYear.Length > 1)
                 {
-                    int fullYear = CultureInfo.CurrentCulture.Calendar.ToFourDigitYear(Int32.Parse(userInputYear));
+                    int fullYear = CultureInfo.CurrentCulture.Calendar.ToFourDigitYear(year);
 
-                    return fullYear.ToString();
+                    if (fullYear.ToString().Length > 2)
+                    {
+                        return fullYear.ToString();
+                    }
+                    else
+                    {
+                        return "";
+                    }
                 }
                 else
                 {
-                    return ""; // Return a blank string to the text box on the verification form
+                    return ""; // Return a empty string to the text box on the verification form
                 }
             }
-            catch (ArgumentOutOfRangeException arnge)
-            {
-                arnge.ToString(); // Not graceful, but I don't expect this to happen often enough
-            }
-            return null;
+            return "";
         }
 
         /// <summary>
@@ -66,6 +72,7 @@ namespace WKFCBusinessRules
         /// <returns>The adjusted class code as a string</returns>
         public static string AdjustProtectionClass(string userInputProtCl)
         {
+            // If the parameter is two characters long and it's not equal to 10
             if (userInputProtCl.Length == 2 && !userInputProtCl.Equals("10"))
             {
                 return userInputProtCl.Substring(1, 1);
@@ -90,11 +97,18 @@ namespace WKFCBusinessRules
             {
                 /*
                  * Regex definition:
-                 *     ?<= is a lookbehind, of the parent category of lookarounds http://www.regular-expressions.info/lookaround.html
-                 *     "When matching a group of numbers between 0 and 9, look behind the matching character and make sure it falls within the group"
-                 *     [0-9]{7,} says to match characters that are the digits 0 to 9, but make sure to match at least 7 of those characters"
-                 *     ?= is a lookahead, of the parent category of lookarounds. It repeats the same idea of a lookbehind but in reverse:
-                 *     "When matching a group of numbers, look in front of the matching character and make sure it falls within the group"
+                 *     ?<= is a lookbehind, of the parent category of lookarounds 
+                 *     http://www.regular-expressions.info/lookaround.html
+                 *     
+                 *     "When matching a group of numbers between 0 and 9, look behind the matching
+                 *     character and make sure it falls within the group"
+                 *     
+                 *     [0-9]{7,} says to match characters that are the digits 0 to 9, 
+                 *     but make sure to match at least 7 of those characters
+                 *     
+                 *     ?= is a lookahead, of the parent category of lookarounds. It repeats the 
+                 *     same idea of a lookbehind but in reverse: "When matching a group of numbers,
+                 *     look in front of the matching character and make sure it falls within the group"
                  * 
                  * Thus, a control number between brackets, curly braces, or parentheses can be found in a given string
                  */
@@ -111,42 +125,10 @@ namespace WKFCBusinessRules
         /// on a boolean value
         /// </summary>
         /// <param name="userInputConstrType">The construction type as a string</param>
-        /// <param name="isUsingIMS">Boolean value: true uses the company internal format</param>
         /// <returns>The numeric representation of the construction type as a string</returns>
-        public static string ConvertConstrTypeToInteger(string userInputConstrType, bool isUsingIMS)
+        public static int ConvertConstrTypeToInteger(string userInputConstrType)
         {
-            // This is how we classify each construction type
-            Dictionary<string, int> imsType = new Dictionary<string, int>
-            {
-                // Modified Fire Resisitive, ISO Number: 5, IMS ID: 6
-                {"mfr", 6 }, {"modified fire resistive", 6},
-
-                // Frame, ISO Number: 1, IMS ID: 5
-                {"brick frame", 5}, {"frame", 5}, {"brick veneer", 5}, {"frame block", 5},
-                {"heavy timber", 5}, {"masonry frame", 5}, {"masonry wood", 5}, {"metal building", 5},
-                {"sheet metal", 5}, {"wood", 5}, 
-
-                // Joisted Masonry, ISO Number: 2, IMS ID: 4
-                {"brick", 4}, {"brick steel", 4}, {"cd", 4}, {"cement", 4}, {"masonry", 4}, {"masonry timbre", 4},
-                {"stone", 4}, {"stucco", 4}, {"joist masonry", 4}, {"tilt-up", 4}, {"jm", 4}, {"joisted masonry", 4},
-                {"joisted mason", 4}, {"j/masonry", 4}, {"joist mason", 4},
-
-                // Non-Combustible, ISO Number: 3, IMS ID: 3
-                {"cb", 3}, {"concrete block", 3}, {"icm", 3}, {"iron clad metal", 3}, {"steel concrete", 3},
-                {"steel cmu", 3}, {"non-comb.", 3}, {"non-comb", 3}, {"pole", 3}, {"non-combustible", 3},
-                {"non-combustib", 3}, {"metal/aluminum", 3}, {"metal / aluminum", 3}, {"metal on slab", 3},
-                {"steel & concr", 3},
-
-                // Masonry Non-Combustible, ISO Number: 4, IMS ID: 2
-                {"cement block", 2}, {"cbs", 2}, {"mnc", 2}, {"ctu", 2}, {"concrete tilt-up", 2}, {"pre-cast com", 2},
-                {"reinforced concrete", 2}, {"masonry nc", 2}, {"masonry non-c", 2}, {"masonry non-combustible", 2},
-
-                // Fire Resistive, ISO Number: 6, IMS ID: 1
-                {"aaa", 1}, {"fire resistive", 1}, {"cinder block", 1}, {"steel", 1}, {"steel frame", 1},
-                {"superior", 1}, {"w/r", 1}, {"fire resist", 1}, {"fire resistiv", 1}, {"fr", 1}, {"fire resitive", 1}
-            };
-
-            // This is how the international standard does it
+            // Don't need to have both an IMS version and a ISO version anymore, just use ISO
             Dictionary<string, int> isoType = new Dictionary<string, int>
             {
                 // Modified Fire Resisitive, ISO Number: 5, IMS ID: 6
@@ -155,45 +137,34 @@ namespace WKFCBusinessRules
                 // Frame, ISO Number: 1, IMS ID: 5
                 {"brick frame", 1}, {"frame", 1}, {"brick veneer", 1}, {"frame block", 1},
                 {"heavy timber", 1}, {"masonry frame", 1}, {"masonry wood", 1}, {"metal building", 1},
-                {"sheet metal", 1}, {"wood", 1}, {"metal/aluminum", 1},
+                {"sheet metal", 1}, {"wood", 1}, {"frajne", 1},
 
                 // Joisted Masonry, ISO Number: 2, IMS ID: 4
-                {"brick", 2}, {"brick steel", 2}, {"cd", 2}, {"cement", 2}, {"masonry", 2}, {"masonry timbre", 2},
-                {"stone", 2}, {"stucco", 2}, {"joist masonry", 2}, {"tilt-up", 2}, {"jm", 2}, {"joisted masonry", 2},
-                {"joisted mason", 2}, {"j/masonry", 2}, {"joist mason", 2},
+                {"brick", 2}, {"brick steel", 2}, {"cd", 2}, {"cement", 2}, {"masonry", 2},
+                {"masonry timbre", 2}, {"stone", 2}, {"stucco", 2}, {"joist masonry", 2}, {"tilt-up", 2},
+                {"jm", 2}, {"joisted masonry", 2}, {"joisted mason", 2}, {"j/masonry", 2}, {"joist mason", 2},
 
                 // Non-Combustible, ISO Number: 3, IMS ID: 3
                 {"cb", 3}, {"concrete block", 3}, {"icm", 3}, {"iron clad metal", 3}, {"steel concrete", 3},
                 {"steel cmu", 3}, {"non-comb.", 3}, {"non-comb", 3}, {"pole", 3}, {"non-combustible", 3},
-                {"non-combustib", 3}, {"metal/aluminum", 3}, {"metal / aluminum", 3}, {"metal on slab", 3},
-                {"steel & concr", 3},
+                {"non-combustib", 3}, {"metal/aluminum", 3}, {"metal on slab", 3}, {"steel & concr", 3},
 
                 // Masonry Non-Combustible, ISO Number: 4, IMS ID: 2
-                {"cement block", 4}, {"cbs", 4}, {"mnc", 4}, {"ctu", 4}, {"concrete tilt-up", 4}, {"pre-cast com", 4},
-                {"reinforced concrete", 4}, {"masonry nc", 4}, {"masonry non-c", 4}, {"masonry non-combustible", 4},
+                {"cement block", 4}, {"cbs", 4}, {"mnc", 4}, {"ctu", 4}, {"concrete tilt-up", 4},
+                {"pre-cast com", 4}, {"reinforced concrete", 4}, {"masonry nc", 4}, {"masonry non-c", 4},
+                {"masonry non-combustible", 4},
 
                 // Fire Resistive, ISO Number: 6, IMS ID: 1
                 {"aaa", 6}, {"fire resistive", 6}, {"cinder block", 6}, {"steel", 6}, {"steel frame", 6},
-                {"superior", 6}, {"w/r", 6}, {"fire resist", 6}, {"fire resistiv", 6}, {"fr", 6}, {"fire resitive", 6}
+                {"superior", 6}, {"w/r", 6}, {"fire resist", 6}, {"fire resistiv", 6}, {"fr", 6},
+                {"fire resitive", 6}
             };
-
-            if (isUsingIMS)
+            foreach (KeyValuePair<string, int> isoPair in isoType)
             {
-                foreach (KeyValuePair<string, int> imsPair in imsType)
-                {
-                    if (userInputConstrType.ToLower().Equals(imsPair.Key))
-                        return imsPair.Value.ToString();
-                }
+                if (userInputConstrType.ToLower().Equals(isoPair.Key))
+                return isoPair.Value;
             }
-            else
-            {
-                foreach (KeyValuePair<string, int> isoPair in isoType)
-                {
-                    if (userInputConstrType.ToLower().Equals(isoPair.Key))
-                        return isoPair.Value.ToString();
-                }
-            }
-            return null;
+            return 0;
         }
 
         /// <summary>
@@ -278,7 +249,7 @@ namespace WKFCBusinessRules
         }
 
         /// <summary>
-        /// Returns a parsed and stripped numerical value from the "amount" column of the Acord 140 Premises Info table
+        /// Returns a parsed and stripped numerical value from the "amount" column
         /// </summary>
         /// <param name="colValue">The monetary value as a string</param>
         /// <returns>The parsed and cleaned amount as a string</returns>
@@ -288,31 +259,32 @@ namespace WKFCBusinessRules
             Regex rgx = new Regex(@"(\$*,*\s*)");
             string cleanColValue = rgx.Replace(colValue, "");
 
-            bool isNumber = System.Int32.TryParse(cleanColValue, out int amount);
-            if (!isNumber)
+            int finalColValue = CheckIfNumeric(cleanColValue);
+
+            if (finalColValue == -1)
             {
-                amount = 0;
+                return "";
             }
-            return amount.ToString();                
+            else
+            {
+                return finalColValue.ToString();
+            }
+                        
         }
 
-         /// <summary>
-        /// If "3A" was input as a building number, it caused database input exceptions. I want to delete this ASAP.
+        /// <summary>
+        /// TryParse wrapper
         /// </summary>
         /// <param name="userInputNumber">The result from OCR as a string</param>
-        /// <returns>Null if not valid, a string if valid</returns>
-        public static string CheckIfNumeric(string userInputNumber)
+        /// <returns>-1 if not valid, the number if valid</returns>
+        private static int CheckIfNumeric(string userInputNumber)
         {
-            bool isNumber;
-            int number;
-
-            isNumber = Int32.TryParse(userInputNumber, out number);
+            bool isNumber = Int32.TryParse(userInputNumber, out int number);
 
             if (isNumber)
-                return number.ToString();
+                return number;
             else
-                return null;
-        }
-        
+                return -1;
+        }      
     }
 }

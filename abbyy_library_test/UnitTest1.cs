@@ -26,18 +26,41 @@ namespace abbyy_library_test
             string year6 = AdjustYearBuilt(testInputYear6);
             string year7 = AdjustYearBuilt(testInputYear7);
 
+            /*
+             * MSDN defines the property TwoDigitYearMax as allowing "a 2-digit year
+             * to be properly translated to a 4-digit year". Essentially, the property
+             * establishes a cutoff point for year conversion within a 100-year range.
+             * If we manually set the property instead of getting the current culture,
+             * we can set it to 2029.
+             * 
+             * If we pass "30" to ToFourDigitYear(), it spits out 1930. If we pass "29"
+             * to ToFourDigitYear(), we get 2029. The property basically decides whether
+             * or not to expand the abbreviation to a year in the 1900s or a year in the
+             * 2000s.
+             * 
+             * According to the current default culture, our cutoff point is 2029 like
+             * the MSDN example.
+             * 
+             * Relevant docs:
+             * https://msdn.microsoft.com/en-us/library/system.globalization.calendar.tofourdigityear(v=vs.110).aspx
+             * https://msdn.microsoft.com/en-us/library/system.globalization.calendar.twodigityearmax(v=vs.110).aspx
+             */
             Assert.AreEqual("2000", year1);
             Assert.AreEqual("2007", year2);
             Assert.AreEqual("2011", year3);
             Assert.AreEqual("2015", year4);
             Assert.AreEqual("1945", year5);
             Assert.AreEqual("1999", year6);
-            Assert.AreEqual("1905", year7);
+            Assert.AreNotEqual("1905", year7);
         }
 
         [TestMethod]
         public void TestRemoveCountySuffix()
         {
+            /*
+             * A requirement of the WKFC database system is that the suffix "county" 
+             * be removed from any county submitted. Don't know why, just is.
+             */ 
             string queens = "Queens County";
             string bronx = "Bronx County";
             string brooklyn = "Kings County";
@@ -57,6 +80,13 @@ namespace abbyy_library_test
         [TestMethod]
         public void TestAdjustProtectionClass()
         {
+            /*
+             * Protection class is a rating that says how well or poorly protected a given
+             * location is from a fire. Our company has all protection class codes 1-9 
+             * listed as singular digits, but sometimes they come in from insurance brokers as "01". 
+             * 
+             * https://github.com/jmarkman/abbyy_logic_library/wiki/AdjustProtectionClass
+             */
             string protcl1 = "05";
             string protcl2 = "03";
             string protcl3 = "10";
@@ -109,21 +139,13 @@ namespace abbyy_library_test
             string testConstType2 = "sheet metal";
             string testConstType3 = "mnc";
 
-            string result1 = ConvertConstrTypeToInteger(testConstType1, true);
-            string result2 = ConvertConstrTypeToInteger(testConstType2, true);
-            string result3 = ConvertConstrTypeToInteger(testConstType3, true);
+            int result1 = ConvertConstrTypeToInteger(testConstType1);
+            int result2 = ConvertConstrTypeToInteger(testConstType2);
+            int result3 = ConvertConstrTypeToInteger(testConstType3);
 
-            string result4 = ConvertConstrTypeToInteger(testConstType1, false);
-            string result5 = ConvertConstrTypeToInteger(testConstType2, false);
-            string result6 = ConvertConstrTypeToInteger(testConstType3, false);
-
-            Assert.AreEqual("4", result1);
-            Assert.AreEqual("5", result2);
-            Assert.AreEqual("2", result3);
-
-            Assert.AreEqual("2", result4);
-            Assert.AreEqual("1", result5);
-            Assert.AreEqual("4", result6);
+            Assert.AreEqual(2, result1);
+            Assert.AreEqual(1, result2);
+            Assert.AreEqual(4, result3);
         }
 
         [TestMethod]
@@ -176,22 +198,36 @@ namespace abbyy_library_test
         }
 
         [TestMethod]
-        public void TestCheckIfNumeric()
+        public void TestGetValueFromAmtCol()
         {
-            string testinput1 = "3A";
-            string testinput2 = "21";
+            /*
+             * Since automatic comma addition is trivial when it comes to Excel and
+             * other WKFC systems like Appia, trim out any extraneous symbols including
+             * dollar signs and commas so there's as little to "misread" as possible
+             */ 
+            string testValue1 = "$1,300,250";
+            string testValue2 = "45,000";
+            string testValue3 = "10k";
 
-            string output1 = CheckIfNumeric(testinput1);
-            string output2 = CheckIfNumeric(testinput2);
+            string result1 = GetValueFromAmtCol(testValue1);
+            string result2 = GetValueFromAmtCol(testValue2);
+            string result3 = GetValueFromAmtCol(testValue3);
 
-            Assert.IsNull(output1);
-            Assert.IsNotNull(output2);
-            Assert.AreEqual("21", testinput2);
+            Assert.AreEqual("1300250", result1);
+            Assert.AreEqual("45000", result2);
+            Assert.AreNotEqual("10000", result3);
+            Assert.AreEqual("", result3);
         }
 
         [TestMethod]
         public void DoesGeocodeReturnNullIfStatusIsNotOK()
         {
+            /*
+             * The returning object from the ParseAddress() method should return 
+             * null if the status received from the JSON is not "OK", i.e., an
+             * error was encountered or somehow we outgrew 2500 address checks/day
+             * and someone submitted the 2501th address check
+             */ 
             string addressInput = "ahgggggggggggggggg";
 
             var results = ParseAddress(addressInput);
