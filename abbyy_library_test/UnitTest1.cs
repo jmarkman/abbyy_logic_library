@@ -103,7 +103,7 @@ namespace abbyy_library_test
         [TestMethod]
         public void TestGetControlNumber()
         {
-            string testSubject1 = "FW: [111234] Some Homeowners Association";
+            string testSubject1 = "[1112345] Some Homeowners Association";
             string testSubject2 = "{1231246} A Condominium Somewhere";
             string testSubject3 = "(2436531) The Bodega where Omar Little from The Wire Got Shot";
             string testSubject4 = "submission 1: {2341234} laguna 140";
@@ -121,7 +121,7 @@ namespace abbyy_library_test
             string result7 = GetControlNumber(testSubject7);
             string result8 = GetControlNumber(testSubject8);
 
-            Assert.AreEqual("111234", result1);
+            Assert.AreEqual("1112345", result1);
             Assert.AreEqual("1231246", result2);
             Assert.AreEqual("2436531", result3);
             Assert.AreEqual("2341234", result4);
@@ -188,13 +188,13 @@ namespace abbyy_library_test
             var results = ParseAddress(addressInput);
             
             Assert.IsInstanceOfType(results, typeof(ABBYYLocation));
-            Assert.AreEqual("203", results.singleBldg);
-            Assert.AreEqual("South Saint Mary's Street", results.st1);
-            Assert.AreEqual("170", results.st2);
-            Assert.AreEqual("San Antonio", results.city);
-            Assert.AreEqual("Bexar County", results.county);
-            Assert.AreEqual("Texas", results.state);
-            Assert.AreEqual("78205", results.zip);
+            Assert.AreEqual("203", results.SingleBldg);
+            Assert.AreEqual("South Saint Mary's Street", results.Street1);
+            Assert.AreEqual("170", results.Street2);
+            Assert.AreEqual("San Antonio", results.City);
+            Assert.AreEqual("Bexar County", results.County);
+            Assert.AreEqual("Texas", results.State);
+            Assert.AreEqual("78205", results.Zip);
         }
 
         [TestMethod]
@@ -258,13 +258,13 @@ namespace abbyy_library_test
             var results = ParseAddress(addressInput);
 
             Assert.IsInstanceOfType(results, typeof(ABBYYLocation));
-            Assert.IsNull(results.singleBldg);
-            Assert.IsNull(results.st1);
-            Assert.IsNull(results.st2);
-            Assert.IsNull(results.city);
-            Assert.IsNull(results.county);
-            Assert.IsNull(results.state);
-            Assert.IsNull(results.zip);
+            Assert.IsNull(results.SingleBldg);
+            Assert.IsNull(results.Street1);
+            Assert.IsNull(results.Street2);
+            Assert.IsNull(results.City);
+            Assert.IsNull(results.County);
+            Assert.IsNull(results.State);
+            Assert.IsNull(results.Zip);
         }
     }
 }

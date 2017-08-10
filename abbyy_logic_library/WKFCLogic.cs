@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Net;
 using Newtonsoft.Json;
 using System.Linq;
+using Newtonsoft.Json.Linq;
 
 namespace WKFCBusinessRules
 {
@@ -210,7 +211,7 @@ namespace WKFCBusinessRules
         {
             // Spawn a dictionary for the address component name and address to live in
             Dictionary<string, string> addressParts = new Dictionary<string, string>();
-            ABBYYLocation location = new ABBYYLocation(); // Spawn a new ABBYYLocation for everything to live in
+            //ABBYYLocation location = new ABBYYLocation(); // Spawn a new ABBYYLocation for everything to live in
 
             string requestUri = "https://maps.googleapis.com/maps/api/geocode/json?sensor=false&address=" + userInputAddress;
 
@@ -218,34 +219,23 @@ namespace WKFCBusinessRules
             {
                 // Go forth, my json
                 var json = webc.DownloadString(requestUri);
-                var locationinfo = JsonConvert.DeserializeObject<LocationInfo>(json);
+                JObject geocodeResults = JObject.Parse(json);
+                if ((string)geocodeResults["status"] != "OK")
+                    return null;
 
-                if (locationinfo.status != "OK")
-                    return location;
+                ABBYYLocation location = new ABBYYLocation
+                {
+                    SingleBldg = GetAddressPiece(geocodeResults, "street_number"),
+                    Street1 = GetAddressPiece(geocodeResults, "route"),
+                    Street2 = GetAddressPiece(geocodeResults, "subpremise"),
+                    County = GetAddressPiece(geocodeResults, "administrative_area_level_2"),
+                    City = (GetAddressPiece(geocodeResults, "locality") == "" ? GetAddressPiece(geocodeResults, "political") : GetAddressPiece(geocodeResults, "locality")),
+                    State = GetAddressPiece(geocodeResults, "administrative_area_level_1"),
+                    Zip = GetAddressPiece(geocodeResults, "postal_code")
+                };
 
-                // Now store the address component name as the key and the actual address component as the value
-                foreach (var item in locationinfo.results[0].address_components)
-                    foreach (var type in item.types)
-                        if (!addressParts.ContainsKey(item.types[0]))
-                            addressParts.Add(item.types[0].ToString(), item.long_name.ToString());
+                return location;
             }
-
-            // Fill the object with the value contents of the dictionary
-            // forgive me padre for i have sinned
-            location.singleBldg = (addressParts.ContainsKey("street_number") ? addressParts["street_number"] : "");
-            location.st1 = (addressParts.ContainsKey("route") ? addressParts["route"] : "");
-            location.st2 = (addressParts.ContainsKey("subpremise") ? addressParts["subpremise"] : "");
-
-            if (!addressParts.ContainsKey("locality"))
-                location.city = (addressParts.ContainsKey("political") ? addressParts["political"] : "");
-            else if (addressParts.ContainsKey("locality"))
-                location.city = addressParts["locality"];
-
-            location.county = (addressParts.ContainsKey("administrative_area_level_2") ? addressParts["administrative_area_level_2"] : "");
-            location.state = (addressParts.ContainsKey("administrative_area_level_1") ? addressParts["administrative_area_level_1"] : "");
-            location.zip = (addressParts.ContainsKey("postal_code") ? addressParts["postal_code"] : "");
-
-            return location;
         }
 
         /// <summary>
@@ -301,6 +291,23 @@ namespace WKFCBusinessRules
                 return number;
             else
                 return -1;
-        }      
+        }
+
+        /// <summary>
+        /// Gets the part of the address we need from the returned JSON
+        /// </summary>
+        /// <param name="jsonObj">The google geocode json as a Json.Net JObject</param>
+        /// <param name="addrComponentType">The type of address part as a string</param>
+        /// <returns>The returned value as a string</returns>
+        private static string GetAddressPiece(JObject jsonObj, string addrComponentType)
+        {
+            var result = jsonObj["results"][0]["address_components"]
+                            .Where(x => (string)x["types"][0] == $"{addrComponentType}")
+                            .Select(x => x["long_name"]);
+
+            var final = result.ToList();
+
+            return (string)final[0];
+        }
     }
 }

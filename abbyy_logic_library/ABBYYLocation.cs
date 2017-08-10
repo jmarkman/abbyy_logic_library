@@ -3,12 +3,12 @@
     public class ABBYYLocation
     {
         // Variable names are conforming to our in-house naming consistency
-        public string singleBldg { get; set; }
-        public string st1 { get; set; }
-        public string st2 { get; set; }
-        public string city { get; set; }
-        public string county { get; set; }
-        public string state { get; set; }
-        public string zip { get; set; }
+        public string SingleBldg { get; set; }
+        public string Street1 { get; set; }
+        public string Street2 { get; set; }
+        public string City { get; set; }
+        public string County { get; set; }
+        public string State { get; set; }
+        public string Zip { get; set; }
     }
 }

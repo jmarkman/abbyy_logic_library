@@ -46,7 +46,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ABBYYLocation.cs" />
-    <Compile Include="LocationInfo.cs" />
     <Compile Include="WKFCLogic.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
