@@ -198,6 +198,19 @@ namespace abbyy_library_test
         }
 
         [TestMethod]
+        public void TestParseAddress1()
+        {
+            string address = "39 North Fullerton, Montclair, NJ 07042";
+            var results = ParseAddress(address);
+            Assert.AreEqual("39", results.SingleBldg);
+            Assert.AreEqual("North Fullerton Avenue", results.Street1);
+            Assert.AreEqual("Montclair", results.City);
+            Assert.AreEqual("Essex County", results.County);
+            Assert.AreEqual("New Jersey", results.State);
+            Assert.AreEqual("07042", results.Zip);
+        }
+
+        [TestMethod]
         public void TestGetValueFromAmtCol()
         {
             /*
@@ -248,23 +261,38 @@ namespace abbyy_library_test
         public void DoesGeocodeReturnNullIfStatusIsNotOK()
         {
             /*
-             * The returning object from the ParseAddress() method should return 
-             * null if the status received from the JSON is not "OK", i.e., an
-             * error was encountered or somehow we outgrew 2500 address checks/day
-             * and someone submitted the 2501th address check
-             */ 
+             * The returning object from the ParseAddress() method should actually
+             * not return null. Instead, the object should consist of empty strings.
+             */
             string addressInput = "ahgggggggggggggggg";
 
             var results = ParseAddress(addressInput);
 
             Assert.IsInstanceOfType(results, typeof(ABBYYLocation));
-            Assert.IsNull(results.SingleBldg);
-            Assert.IsNull(results.Street1);
-            Assert.IsNull(results.Street2);
-            Assert.IsNull(results.City);
-            Assert.IsNull(results.County);
-            Assert.IsNull(results.State);
-            Assert.IsNull(results.Zip);
+            Assert.IsNotNull(results);
+            Assert.AreEqual("", results.SingleBldg);
+        }
+
+        [TestMethod]
+        public void SplitAddressByNewlineTest_BestPossibleInput()
+        {
+            string testAddress1 = "Reserve Investors, LLC, DBA: Reserve at Stockbridge\n115 Rock Quarry Rd\nStockbridge GA 30281";
+
+            var results = SplitAddressByNewline(testAddress1);
+
+            Assert.AreEqual(results.Insured, "Reserve Investors, LLC, DBA: Reserve at Stockbridge");
+            Assert.AreEqual(results.Address[0], "115 Rock Quarry Rd");
+            Assert.AreEqual(results.Address[1], "Stockbridge GA 30281");
+        }
+
+        [TestMethod]
+        public void BuildSubmissionIDTest()
+        {
+            string testBatchName = "Batch HF_ID1136";
+
+            var subID = BuildSubmissionID(testBatchName);
+
+            Assert.AreEqual("ID1136", subID);
         }
     }
 }

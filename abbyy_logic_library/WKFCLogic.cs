@@ -11,6 +11,8 @@ namespace WKFCBusinessRules
 {
     public class WKFCLogic
     {
+
+        #region AdjustYearBuilt
         /// <summary>
         /// Converts a two-digit year to a 4-digit year utilizing CultureInfo.Calendar
         /// </summary>
@@ -18,9 +20,10 @@ namespace WKFCBusinessRules
         /// <returns>The year in four digits as a string</returns>
         public static string AdjustYearBuilt(string userInputYear)
         {
-   
-            int year = CheckIfNumeric(userInputYear); // Check if the incoming data is actually a number
-            if (year >= 0) // Previously had this as > instead of >= which excluded '00 as a year
+            // Check if the incoming data is actually a number
+            int year = CheckIfNumeric(userInputYear);
+            // Previously had this as > instead of >= which excluded '00 as a year
+            if (year >= 0)
             {
                 // Sometimes ABBYY will only read one digit from the form, just skip it if this happens
                 if (userInputYear.Length > 1)
@@ -33,17 +36,19 @@ namespace WKFCBusinessRules
                     }
                     else
                     {
-                        return "";
+                        return string.Empty;
                     }
                 }
                 else
                 {
-                    return ""; // Return a empty string to the text box on the verification form
+                    return string.Empty;
                 }
             }
-            return "";
+            return string.Empty;
         }
+        #endregion
 
+        #region RemoveCountySuffix
         /// <summary>
         /// Removes the "county" suffix from a given county for database reasons. 
         /// </summary>
@@ -65,7 +70,9 @@ namespace WKFCBusinessRules
             }
             return null;
         }
+        #endregion
 
+        #region AdjustProtectionClass
         /// <summary>
         /// Adjusts the protection class to trim any leading zeros from the protection class code.
         /// </summary>
@@ -84,7 +91,9 @@ namespace WKFCBusinessRules
             }
             return null;
         }
+        #endregion
 
+        #region GetControlNumber
         /// <summary>
         /// Extract the company database ID number for the insured account from the email subject line.
         /// </summary>
@@ -93,34 +102,36 @@ namespace WKFCBusinessRules
         public static string GetControlNumber(string subjectLine)
         {
             if (subjectLine.Length == 0)
-                return "";
+                return string.Empty;
             else
             {
                 /*
-                 * Regex definition:
-                 *     ?<= is a lookbehind, of the parent category of lookarounds 
-                 *     http://www.regular-expressions.info/lookaround.html
-                 *     
-                 *     "When matching a group of numbers between 0 and 9, look behind the matching
-                 *     character and make sure it falls within the group"
-                 *     
-                 *     [0-9]{7,} says to match characters that are the digits 0 to 9, 
-                 *     but make sure to match at least 7 of those characters
-                 *     
-                 *     ?= is a lookahead, of the parent category of lookarounds. It repeats the 
-                 *     same idea of a lookbehind but in reverse: "When matching a group of numbers,
-                 *     look in front of the matching character and make sure it falls within the group"
-                 * 
-                 * Thus, a control number between brackets, curly braces, or parentheses can be found in a given string
-                 */
+                    * Regex definition:
+                    *     ?<= is a lookbehind, of the parent category of lookarounds 
+                    *     http://www.regular-expressions.info/lookaround.html
+                    *     
+                    *     "When matching a group of numbers between 0 and 9, look behind the matching
+                    *     character and make sure it falls within the group"
+                    *     
+                    *     [0-9]{7,} says to match characters that are the digits 0 to 9, 
+                    *     but make sure to match at least 7 of those characters
+                    *     
+                    *     ?= is a lookahead, of the parent category of lookarounds. It repeats the 
+                    *     same idea of a lookbehind but in reverse: "When matching a group of numbers,
+                    *     look in front of the matching character and make sure it falls within the group"
+                    * 
+                    * Thus, a control number between brackets, curly braces, or parentheses can be found in a given string
+                    */
                 Match match = Regex.Match(subjectLine, @"(?<=\[|\(|\{)[0-9]{7,}(?=\]|\}|\))");
                 if (match.Success)
                     return match.Value;
                 else
-                    return "";
+                    return string.Empty;
             }
         }
+        #endregion
 
+        #region ConvertConstrTypeToInteger
         /// <summary>
         /// This method will convert the construction type to a number based 
         /// on a boolean value
@@ -163,11 +174,13 @@ namespace WKFCBusinessRules
             foreach (KeyValuePair<string, int> isoPair in isoType)
             {
                 if (userInputConstrType.ToLower().Equals(isoPair.Key))
-                return isoPair.Value;
+                    return isoPair.Value;
             }
             return 0;
         }
+        #endregion
 
+        #region GetBuildingNumber
         /// <summary>
         /// Extracts the building number from the street address
         /// </summary>
@@ -177,7 +190,7 @@ namespace WKFCBusinessRules
         public static string GetBuildingNumber(string userInputStreet, bool getFirst)
         {
             // A building range will always be separated from the rest of the street by a space
-            int space = userInputStreet.IndexOf(" "); 
+            int space = userInputStreet.IndexOf(" ");
             // Find the index of the separating dash
             string bldgNums;
 
@@ -193,7 +206,7 @@ namespace WKFCBusinessRules
                 }
                 else
                 {
-                    return "";
+                    return string.Empty;
                 }
             }
             else // Get the entire building number range
@@ -201,7 +214,9 @@ namespace WKFCBusinessRules
                 return bldgNums;
             }
         }
+        #endregion
 
+        #region ParseAddress
         /// <summary>
         /// Returns a complete address split into parts based on the address passed to the method
         /// </summary>
@@ -209,9 +224,7 @@ namespace WKFCBusinessRules
         /// <returns>A custom object (ABBYYLocation) that contains all of the address parts as strings</returns>
         public static ABBYYLocation ParseAddress(string userInputAddress)
         {
-            // Spawn a dictionary for the address component name and address to live in
-            Dictionary<string, string> addressParts = new Dictionary<string, string>();
-            //ABBYYLocation location = new ABBYYLocation(); // Spawn a new ABBYYLocation for everything to live in
+            ABBYYLocation location;
 
             string requestUri = "https://maps.googleapis.com/maps/api/geocode/json?sensor=false&address=" + userInputAddress;
 
@@ -221,23 +234,37 @@ namespace WKFCBusinessRules
                 var json = webc.DownloadString(requestUri);
                 JObject geocodeResults = JObject.Parse(json);
                 if ((string)geocodeResults["status"] != "OK")
-                    return null;
-
-                ABBYYLocation location = new ABBYYLocation
                 {
-                    SingleBldg = GetAddressPiece(geocodeResults, "street_number"),
-                    Street1 = GetAddressPiece(geocodeResults, "route"),
-                    Street2 = GetAddressPiece(geocodeResults, "subpremise"),
-                    County = GetAddressPiece(geocodeResults, "administrative_area_level_2"),
-                    City = (GetAddressPiece(geocodeResults, "locality") == "" ? GetAddressPiece(geocodeResults, "political") : GetAddressPiece(geocodeResults, "locality")),
-                    State = GetAddressPiece(geocodeResults, "administrative_area_level_1"),
-                    Zip = GetAddressPiece(geocodeResults, "postal_code")
-                };
-
+                    location = new ABBYYLocation
+                    {
+                        SingleBldg = string.Empty,
+                        Street1 = string.Empty,
+                        Street2 = string.Empty,
+                        County = string.Empty,
+                        City = string.Empty,
+                        State = string.Empty,
+                        Zip = string.Empty
+                    };
+                }
+                else
+                {
+                    location = new ABBYYLocation
+                    {
+                        SingleBldg = GetAddressPiece(geocodeResults, "street_number"),
+                        Street1 = GetAddressPiece(geocodeResults, "route"),
+                        Street2 = GetAddressPiece(geocodeResults, "subpremise"),
+                        County = GetAddressPiece(geocodeResults, "administrative_area_level_2"),
+                        City = GetAddressPiece(geocodeResults, "locality"),
+                        State = GetAddressPiece(geocodeResults, "administrative_area_level_1"),
+                        Zip = GetAddressPiece(geocodeResults, "postal_code")
+                    };
+                }
                 return location;
             }
         }
+        #endregion
 
+        #region GetValueFromAmtCol
         /// <summary>
         /// Returns a parsed and stripped numerical value from the "amount" column
         /// </summary>
@@ -253,15 +280,16 @@ namespace WKFCBusinessRules
 
             if (finalColValue == -1)
             {
-                return "";
+                return string.Empty;
             }
             else
             {
                 return finalColValue.ToString();
             }
-                        
         }
+        #endregion
 
+        #region RoundStories
         /// <summary>
         /// If the broker writes a decimal for the number of stories, round that value up
         /// </summary>
@@ -273,11 +301,81 @@ namespace WKFCBusinessRules
             if (isNumber)
             {
                 parsedStories = Math.Ceiling(parsedStories);
-                return Convert.ToInt32(parsedStories);               
+                return Convert.ToInt32(parsedStories);
             }
             return 0;
         }
+        #endregion
 
+        #region SplitAddressByNewline
+        /// <summary>
+        /// Splits an incoming address by the used newline character (\n, \r\n, env.newline, etc.).
+        /// </summary>
+        /// <param name="addressInput">The address as a string</param>
+        /// <returns>String array of each line of the string separated by a return of some kind</returns>
+        public static AcordAddress SplitAddressByNewline(string addressInput)
+        {
+            // Array to hold the address parts before it's appended to the object
+            string[] finalAddress;
+            // Just reuse this, I think it's ok? Haven't consulted the council of elders
+            Match match;
+            AcordAddress acordAddress = new AcordAddress();
+
+            // Split the incoming address string by new lines
+            string[] splitInput = addressInput.Split(new string[] { "\n", "\r\n", Environment.NewLine }, StringSplitOptions.None);
+
+            Regex dbaRegex = new Regex(@"dba|c/o");
+            match = dbaRegex.Match(splitInput[1].ToLower());
+
+            if (match.Success)
+            {
+                acordAddress.Insured = $"{splitInput[0]} {splitInput[1]}";
+            }
+            else
+            {
+                acordAddress.Insured = splitInput[0];
+            }
+
+            // Get the last position in the the array holding the split address, since that's
+            // guaranteed to be the City/State/Zip portion of the address
+            int last = splitInput.Length - 1;
+
+            Regex suiteRegex = new Regex(@"suite|ste|#\w\w\w|#\s\w\w\w");
+            // Match the line above the last because that will be our "weird" line:
+            // The street will be above this line if the suite has its own dedicated line
+            match = suiteRegex.Match(splitInput[last - 1].ToLower());
+
+            if (match.Success)
+            {
+                acordAddress.Address = finalAddress = new string[] { splitInput[last - 2], splitInput[last - 1], splitInput[last] };
+            }
+            else
+            {
+                acordAddress.Address = finalAddress = new string[] { splitInput[last - 1], splitInput[last] };
+            }
+
+            return acordAddress;
+        }
+        #endregion
+
+        #region BuildSubmissionID
+        /// <summary>
+        /// Creates a submission ID based on the name of the Flexicapture batch
+        /// </summary>
+        /// <param name="batchName">The name of the batch as a string</param>
+        /// <returns>The submission ID as a string</returns>
+        public static string BuildSubmissionID(string batchName)
+        {
+            Match match = Regex.Match(batchName, @"ID\d*");
+
+            if (match.Success)
+                return match.Value;
+            else
+                return string.Empty;
+        }
+        #endregion
+
+        #region CheckIfNumeric
         /// <summary>
         /// TryParse wrapper
         /// </summary>
@@ -292,7 +390,9 @@ namespace WKFCBusinessRules
             else
                 return -1;
         }
+        #endregion
 
+        #region GetAddressPiece
         /// <summary>
         /// Gets the part of the address we need from the returned JSON
         /// </summary>
@@ -301,13 +401,31 @@ namespace WKFCBusinessRules
         /// <returns>The returned value as a string</returns>
         private static string GetAddressPiece(JObject jsonObj, string addrComponentType)
         {
-            var result = jsonObj["results"][0]["address_components"]
-                            .Where(x => (string)x["types"][0] == $"{addrComponentType}")
-                            .Select(x => x["long_name"]);
+            /*
+                * LINQ documentation:
+                *  1. From the json object returned, select the address components, located
+                *  in the first index of the results
+                *  
+                *  2. Where the first item of the "types" array in the address component is
+                *  equal to the argument supplied in addrComponentType
+                *  
+                *  3. Select the first item within the "long_name" array
+                *    
+                *  4. If the field is empty or doesn't exist, default to returning an empty string
+                *  
+                *  5. Select the first item available
+                *  
+                *  6. Convert it to a string from a JToken object
+                */
+            string result = jsonObj["results"][0]["address_components"]
+                                .Where(x => (string)x["types"][0] == $"{addrComponentType}")
+                                .Select(x => x["long_name"])
+                                .DefaultIfEmpty(string.Empty)
+                                .First()
+                                .ToString();
 
-            var final = result.ToList();
-
-            return (string)final[0];
+            return result;
         }
+        #endregion
     }
 }
